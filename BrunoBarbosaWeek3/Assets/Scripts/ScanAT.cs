@@ -14,6 +14,8 @@ namespace NodeCanvas.Tasks.Actions {
         public BBParameter<float> speed;
         public BBParameter<float> arrivalDistance;
 
+		public BBParameter<Transform> targetTransform;
+
         //Use for initialization. This is called only once in the lifetime of the task.
         //Return null if init was successfull. Return an error string otherwise
         protected override string OnInit() {
@@ -31,7 +33,6 @@ namespace NodeCanvas.Tasks.Actions {
 		protected override void OnUpdate() {
 			DrawCircle(agent.transform.position, detectionRadius.value, scanColour, numberOfScanCirclePoints);
 
-            
             Collider[] detectColliders = Physics.OverlapSphere(agent.transform.position, detectionRadius.value, LightMachineLayerMask);
 
 			//Debug.Log(detectColliders.Count());
@@ -50,6 +51,7 @@ namespace NodeCanvas.Tasks.Actions {
 				float repairValue = lightMachineBlackboard.GetVariableValue<float>("repairValue");
 				if(repairValue ==0)
 				{
+					/*
 					Debug.Log("found uncharged tower");
 					Vector3 moveDiretction = (towerlocation.position - agent.transform.position).normalized;
 					agent.transform.position += moveDiretction * speed.value * Time.deltaTime;
@@ -59,17 +61,13 @@ namespace NodeCanvas.Tasks.Actions {
                     {
                         EndAction(true);
                     }
-
-                    //EndAction(true);
+					*/
+					targetTransform.value = lightMachineBlackboard.GetVariableValue<Transform>("workpad");
+                    EndAction(true);
                 }
 			}
-			if( detectColliders.Count() == 0)
-			{
-				Debug.Log("Not any in sign");
-                EndAction(true);
-            }
 
-		}
+        }
 
 		private void DrawCircle(Vector3 center, float radius, Color colour, int numberOfPoints)
 		{
