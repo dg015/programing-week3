@@ -1,5 +1,6 @@
 using NodeCanvas.Framework;
 using ParadoxNotion.Design;
+using System.Linq;
 using UnityEngine;
 
 namespace NodeCanvas.Tasks.Actions {
@@ -7,12 +8,15 @@ namespace NodeCanvas.Tasks.Actions {
 	public class ScanAT : ActionTask {
 		public Color scanColour;
 		public int numberOfScanCirclePoints;
-		public float detectionRadius;
+		public BBParameter <float> detectionRadius;
 		public LayerMask LightMachineLayerMask;
+		public Transform towerlocation;
+        public BBParameter<float> speed;
+        public BBParameter<float> arrivalDistance;
 
-		//Use for initialization. This is called only once in the lifetime of the task.
-		//Return null if init was successfull. Return an error string otherwise
-		protected override string OnInit() {
+        //Use for initialization. This is called only once in the lifetime of the task.
+        //Return null if init was successfull. Return an error string otherwise
+        protected override string OnInit() {
 			return null;
 		}
 
@@ -20,28 +24,50 @@ namespace NodeCanvas.Tasks.Actions {
 		//Call EndAction() to mark the action as finished, either in success or failure.
 		//EndAction can be called from anywhere.
 		protected override void OnExecute() {
+
 		}
 
 		//Called once per frame while the action is active.
 		protected override void OnUpdate() {
-			Collider[] detectColliders = Physics.OverlapSphere(agent.transform.position, detectionRadius, LightMachineLayerMask);
+			DrawCircle(agent.transform.position, detectionRadius.value, scanColour, numberOfScanCirclePoints);
 
-			foreach(Collider detectCollider in detectColliders)
+            
+            Collider[] detectColliders = Physics.OverlapSphere(agent.transform.position, detectionRadius.value, LightMachineLayerMask);
+
+			//Debug.Log(detectColliders.Count());
+            
+			foreach (Collider detectCollider in detectColliders)
 			{
 				Blackboard lightMachineBlackboard = detectCollider.GetComponentInParent<Blackboard>();
 
 				if(lightMachineBlackboard == null)
 				{
 					Debug.LogError("Scan AT Error - could not find light machine's blackboard");
+
 					return;
 				}
 
 				float repairValue = lightMachineBlackboard.GetVariableValue<float>("repairValue");
 				if(repairValue ==0)
 				{
-					EndAction(true);
-				}
+					Debug.Log("found uncharged tower");
+					Vector3 moveDiretction = (towerlocation.position - agent.transform.position).normalized;
+					agent.transform.position += moveDiretction * speed.value * Time.deltaTime;
+					float distanceToTarget = Vector3.Distance(towerlocation.position, agent.transform.position);
+
+                    if (distanceToTarget < arrivalDistance.value)
+                    {
+                        EndAction(true);
+                    }
+
+                    //EndAction(true);
+                }
 			}
+			if( detectColliders.Count() == 0)
+			{
+				Debug.Log("Not any in sign");
+                EndAction(true);
+            }
 
 		}
 
