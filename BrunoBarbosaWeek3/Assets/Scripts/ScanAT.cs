@@ -28,7 +28,19 @@ namespace NodeCanvas.Tasks.Actions {
 
 			foreach(Collider detectCollider in detectColliders)
 			{
+				Blackboard lightMachineBlackboard = detectCollider.GetComponentInParent<Blackboard>();
 
+				if(lightMachineBlackboard == null)
+				{
+					Debug.LogError("Scan AT Error - could not find light machine's blackboard");
+					return;
+				}
+
+				float repairValue = lightMachineBlackboard.GetVariableValue<float>("repairValue");
+				if(repairValue ==0)
+				{
+					EndAction(true);
+				}
 			}
 
 		}
